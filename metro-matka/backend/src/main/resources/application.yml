@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: metro-matka
+  datasource:
+    url: jdbc:postgresql://localhost:5432/metro_matka
+    username: postgres
+    password: root
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+jwt:
+  secret: ${JWT_SECRET:metro-matka-super-secret-key-minimum-512-bits-for-production-change-this}
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID:rzp_test_placeholder}
+  key-secret: ${RAZORPAY_KEY_SECRET:placeholder}
+  currency: INR
+
+game:
+  wallet:
+    min-deposit: 100
+    max-deposit: 100000
+
+cors:
+  allowed-origins: ${CORS_ORIGINS:http://localhost:4200}
+
+logging:
+  level:
+    com.metro.matka: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
