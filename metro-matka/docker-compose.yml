@@ -1,0 +1,51 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: metro_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: metro_matka
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: ["5432:5432"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U postgres -d metro_matka"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [metro_net]
+
+  backend:
+    build: { context: ./backend, dockerfile: Dockerfile }
+    container_name: metro_backend
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/metro_matka
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: metro-matka-super-secret-key-for-production-change-this-512-bits
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-rzp_test_placeholder}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-placeholder}
+      CORS_ORIGINS: http://localhost:4200,http://frontend:80
+    ports: ["8080:8080"]
+    networks: [metro_net]
+
+  frontend:
+    build: { context: ./frontend, dockerfile: Dockerfile }
+    container_name: metro_frontend
+    restart: unless-stopped
+    depends_on: [backend]
+    ports: ["4200:80"]
+    networks: [metro_net]
+
+volumes:
+  postgres_data:
+networks:
+  metro_net:
+    driver: bridge
